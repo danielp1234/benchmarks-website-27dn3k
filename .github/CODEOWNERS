@@ -1,0 +1,51 @@
+# Files will be matched against patterns from most specific to least specific.
+# At least 2 reviewers are required for all changes.
+
+# Default owners - Project leads review any unspecified files
+* @project-leads
+
+# Backend service code ownership
+src/backend/**/* @backend-team
+src/backend/tests/**/* @backend-team @qa-team
+src/backend/tests/security/**/* @backend-team @security-team @qa-team
+
+# Frontend application code ownership  
+src/web/**/* @frontend-team
+src/web/tests/**/* @frontend-team @qa-team
+
+# Infrastructure and deployment configuration
+infrastructure/**/* @devops-team
+infrastructure/terraform/* @devops-team @security-team
+
+# Security-critical backend components requiring security team review
+src/backend/src/config/* @backend-team @security-team
+src/backend/src/api/middlewares/* @backend-team @security-team
+src/backend/src/auth/**/* @backend-team @security-team
+src/backend/src/security/**/* @backend-team @security-team
+
+# CI/CD workflow protection
+.github/workflows/* @devops-team @security-team
+
+# Documentation ownership
+*.md @docs-team
+src/**/README.md @docs-team @project-leads
+docs/security/**/* @docs-team @security-team
+
+# The following patterns require mandatory security review:
+# - All authentication and authorization code
+# - Security middleware and configurations
+# - Infrastructure changes
+# - CI/CD workflows
+# - Security documentation
+
+# The following patterns require DevOps team review:
+# - Infrastructure code
+# - Deployment configurations
+# - CI/CD pipeline changes
+# - Configuration management
+
+# The following patterns require project lead review:
+# - Architecture changes
+# - Major feature additions
+# - Security policies
+# - Team membership updates
