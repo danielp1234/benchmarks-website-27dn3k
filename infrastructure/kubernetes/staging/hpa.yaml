@@ -1,0 +1,93 @@
+# Horizontal Pod Autoscaler configuration for SaaS Benchmarks Platform - Staging Environment
+# Version: autoscaling/v2
+# Purpose: Automatically scale application components based on resource utilization
+
+---
+# API Service HPA Configuration
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: saas-benchmarks-api-hpa
+  namespace: staging
+  labels:
+    app: saas-benchmarks
+    component: api
+    environment: staging
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: saas-benchmarks-api
+  minReplicas: 2  # Ensures high availability
+  maxReplicas: 5  # Supports peak load scenarios
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70  # Conservative CPU threshold
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80  # Memory threshold for scaling
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60  # 1-minute window for scale-up decisions
+      policies:
+        - type: Pods
+          value: 2  # Add up to 2 pods per scaling event
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300  # 5-minute window for scale-down decisions
+      policies:
+        - type: Pods
+          value: 1  # Remove 1 pod at a time
+          periodSeconds: 120
+
+---
+# Web Service HPA Configuration
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: saas-benchmarks-web-hpa
+  namespace: staging
+  labels:
+    app: saas-benchmarks
+    component: web
+    environment: staging
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: saas-benchmarks-web
+  minReplicas: 2  # Ensures high availability
+  maxReplicas: 4  # Balanced scaling for web tier
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70  # Conservative CPU threshold
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80  # Memory threshold for scaling
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60  # 1-minute window for scale-up decisions
+      policies:
+        - type: Pods
+          value: 1  # Add 1 pod per scaling event
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300  # 5-minute window for scale-down decisions
+      policies:
+        - type: Pods
+          value: 1  # Remove 1 pod at a time
+          periodSeconds: 120
