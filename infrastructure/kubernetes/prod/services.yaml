@@ -1,0 +1,51 @@
+# Frontend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: saas-benchmarks-prod
+  labels:
+    app: frontend
+    env: production
+    tier: web
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/port: '80'
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: frontend
+    env: production
+  sessionAffinity: None
+  publishNotReadyAddresses: false
+---
+# Backend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: saas-benchmarks-prod
+  labels:
+    app: backend
+    env: production
+    tier: api
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/port: '3000'
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+  selector:
+    app: backend
+    env: production
+  sessionAffinity: None
+  publishNotReadyAddresses: false
