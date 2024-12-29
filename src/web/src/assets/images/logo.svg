@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" 
+     viewBox="0 0 240 60" 
+     preserveAspectRatio="xMidYMid meet"
+     role="img"
+     aria-labelledby="logo-title logo-desc"
+     version="1.1">
+    
+    <!-- Metadata -->
+    <metadata>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                 xmlns:dc="http://purl.org/dc/elements/1.1/">
+            <rdf:Description>
+                <dc:title>SaaS Benchmarks Platform Logo</dc:title>
+                <dc:creator>SaaS Benchmarks Platform</dc:creator>
+                <dc:rights>Copyright (c) 2023 SaaS Benchmarks Platform</dc:rights>
+                <dc:date>2023-10-15</dc:date>
+                <dc:format>image/svg+xml</dc:format>
+                <dc:license>All rights reserved</dc:license>
+            </rdf:Description>
+        </rdf:RDF>
+    </metadata>
+
+    <!-- Accessibility Labels -->
+    <title id="logo-title">SaaS Benchmarks Platform Logo</title>
+    <desc id="logo-desc">A modern logo representing data-driven SaaS benchmarking with ascending graph bars and dynamic elements</desc>
+
+    <!-- Definitions for reusable elements -->
+    <defs>
+        <!-- Gradient for dynamic effects -->
+        <linearGradient id="brand-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:var(--logo-primary, #2563eb)"/>
+            <stop offset="100%" style="stop-color:var(--logo-secondary, #1d4ed8)"/>
+        </linearGradient>
+
+        <!-- Filter for subtle shadow -->
+        <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="1" dy="1" stdDeviation="0.5" flood-opacity="0.2"/>
+        </filter>
+    </defs>
+
+    <!-- Main Logo Group -->
+    <g fill="none" stroke-width="0">
+        <!-- Graph Bars Symbol -->
+        <g transform="translate(10, 10)">
+            <rect x="0" y="25" width="12" height="15" fill="url(#brand-gradient)" rx="2"/>
+            <rect x="16" y="20" width="12" height="20" fill="url(#brand-gradient)" rx="2"/>
+            <rect x="32" y="15" width="12" height="25" fill="url(#brand-gradient)" rx="2"/>
+            <rect x="48" y="10" width="12" height="30" fill="url(#brand-gradient)" rx="2"/>
+            
+            <!-- Dynamic Line Connecting Bars -->
+            <path d="M6 25 L22 20 L38 15 L54 10" 
+                  stroke="url(#brand-gradient)" 
+                  stroke-width="2"
+                  fill="none"
+                  stroke-linecap="round"/>
+        </g>
+
+        <!-- Text Elements -->
+        <g transform="translate(80, 35)" fill="currentColor">
+            <!-- SaaS text -->
+            <text x="0" y="0" 
+                  font-family="system-ui, -apple-system, sans-serif" 
+                  font-weight="700" 
+                  font-size="24"
+                  fill="var(--logo-text, #1a1a1a)">
+                SaaS
+            </text>
+            <!-- Benchmarks text -->
+            <text x="80" y="0" 
+                  font-family="system-ui, -apple-system, sans-serif" 
+                  font-weight="500" 
+                  font-size="24"
+                  fill="var(--logo-text, #1a1a1a)">
+                Benchmarks
+            </text>
+        </g>
+    </g>
+
+    <!-- CSS Variables Support -->
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --logo-primary: #3b82f6;
+                --logo-secondary: #2563eb;
+                --logo-text: #ffffff;
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --logo-primary: #2563eb;
+                --logo-secondary: #1d4ed8;
+                --logo-text: #1a1a1a;
+            }
+        }
+    </style>
+</svg>
