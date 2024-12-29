@@ -1,0 +1,37 @@
+[Binary WOFF2 Font File Content]
+
+This is a binary WOFF2 (Web Open Font Format 2.0) file containing the Inter font in SemiBold weight (600).
+
+Font Metadata:
+- Family: Inter
+- Weight: 600 (SemiBold)
+- Style: Normal
+- Format: WOFF2
+- Unicode Range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD
+
+Performance Optimizations:
+- Compressed using WOFF2 format for optimal file size
+- Subsetted to include only required Unicode ranges
+- Optimized for modern browser rendering
+- Configured for font-display: swap loading strategy
+
+Browser Support:
+- Chrome 36+
+- Firefox 39+
+- Safari 12+
+- Edge 79+
+
+Usage:
+- Primary and secondary headings
+- Button and interactive element text
+- Navigation menu items
+- Form labels and important UI text
+- Table headers and strong emphasis
+- Call-to-action elements
+
+Caching Configuration:
+Cache-Control: public, max-age=31536000, immutable
+
+Note: This is a binary file that should be served with the following headers:
+Content-Type: font/woff2
+Access-Control-Allow-Origin: *
