@@ -1,0 +1,68 @@
+{
+  "env": {
+    "node": true,
+    "es2022": true,
+    "jest": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "plugin:import/typescript",
+    "plugin:node/recommended",
+    "prettier"
+  ],
+  "plugins": [
+    "@typescript-eslint",
+    "import",
+    "node"
+  ],
+  "rules": {
+    "@typescript-eslint/explicit-function-return-type": "error",
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/strict-boolean-expressions": "error",
+    "@typescript-eslint/no-floating-promises": "error",
+    "@typescript-eslint/no-unsafe-assignment": "error",
+    "@typescript-eslint/no-unsafe-member-access": "error",
+    "@typescript-eslint/no-unsafe-return": "error",
+    "import/order": [
+      "error",
+      {
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          "parent",
+          "sibling",
+          "index"
+        ],
+        "newlines-between": "always",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ],
+    "import/no-unresolved": "error",
+    "import/no-cycle": "error",
+    "node/no-missing-import": "off",
+    "node/no-unsupported-features/es-syntax": "off"
+  },
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true,
+        "project": "./tsconfig.json"
+      }
+    }
+  }
+}
