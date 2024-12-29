@@ -1,0 +1,90 @@
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npmrc
+
+# Build outputs
+dist
+coverage
+*.log
+
+# Development and test files
+tests
+jest.config.*
+nodemon*
+tsconfig*.json
+.eslintrc*
+.prettierrc*
+
+# Version control
+.git
+.gitignore
+
+# Environment and secrets
+.env
+.env.*
+*.key
+*.pem
+
+# IDE configurations
+.vscode
+.idea
+
+# System files
+.DS_Store
+
+# Documentation
+README.md
+
+# Docker files
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Development configurations
+.editorconfig
+.babelrc
+.nvmrc
+
+# Test coverage and reports
+coverage
+*.lcov
+.nyc_output
+
+# Temporary files
+*.swp
+*.swo
+.tmp
+temp
+
+# Debug files
+debug
+.debug
+
+# Local development certificates
+*.crt
+*.cert
+*.key
+*.pem
+
+# Package manager files
+package-lock.json
+yarn.lock
+.yarnrc
+.yarn-integrity
+
+# Cache directories
+.cache
+.npm
+.eslintcache
+.stylelintcache
+
+# Miscellaneous
+*.pid
+*.seed
+*.pid.lock
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
