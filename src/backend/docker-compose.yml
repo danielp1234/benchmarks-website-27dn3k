@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # Backend API service
+  api:
+    build:
+      context: .
+      target: development
+      dockerfile: Dockerfile
+    container_name: saas_benchmarks_api
+    ports:
+      - "3000:3000"  # API port
+      - "9229:9229"  # Debug port
+    volumes:
+      - .:/app:delegated  # Source code mounting
+      - node_modules:/app/node_modules  # Dependencies volume
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=saas_benchmarks
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DEBUG=app:*
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # PostgreSQL database service
+  postgres:
+    image: postgres:14-alpine
+    container_name: saas_benchmarks_postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=saas_benchmarks
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # Redis cache service
+  redis:
+    image: redis:7-alpine
+    container_name: saas_benchmarks_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: >
+      redis-server 
+      --appendonly yes 
+      --save 60 1 
+      --maxmemory 512mb 
+      --maxmemory-policy allkeys-lru
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  node_modules:
+    name: saas_benchmarks_node_modules
+  postgres_data:
+    name: saas_benchmarks_postgres_data
+  redis_data:
+    name: saas_benchmarks_redis_data
+
+networks:
+  backend:
+    name: saas_benchmarks_network
+    driver: bridge
