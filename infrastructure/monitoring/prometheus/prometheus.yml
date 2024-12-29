@@ -1,0 +1,96 @@
+# Prometheus v2.45.x Configuration
+# Main configuration file for monitoring the SaaS Benchmarks Platform
+
+# Global configurations applied to all jobs unless overridden
+global:
+  scrape_interval: 15s     # Default interval for scraping targets
+  evaluation_interval: 15s # Default interval for evaluating rules
+  
+  # External labels added to any time series or alerts
+  external_labels:
+    environment: "${ENV:production}"
+    region: "${AWS_REGION}"
+    app: "saas-benchmarks"
+
+# Rule files containing alerting and recording rules
+rule_files:
+  - "rules/alerts.yml"    # Alert definitions
+  - "rules/recording.yml" # Recording rules for metric aggregation
+
+# Scrape configurations for monitoring different components
+scrape_configs:
+  # API Service monitoring
+  - job_name: "api"
+    metrics_path: "/metrics"
+    scrape_interval: 10s # More frequent scraping for API performance monitoring
+    scheme: "http"
+    static_configs:
+      - targets: ["api:8080"]
+    metrics_labels:
+      service: "api"
+      environment: "${ENV:production}"
+      component_type: "application"
+    relabel_configs:
+      - source_labels: ["__address__"]
+        target_label: "instance"
+        replacement: "${HOSTNAME}"
+
+  # Node Exporter for system metrics
+  - job_name: "node"
+    metrics_path: "/metrics"
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["node-exporter:9100"]
+    metrics_labels:
+      component: "system"
+      environment: "${ENV:production}"
+      monitoring_type: "infrastructure"
+
+  # PostgreSQL monitoring
+  - job_name: "postgres"
+    metrics_path: "/metrics"
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+    metrics_labels:
+      service: "postgres"
+      environment: "${ENV:production}"
+      component_type: "database"
+
+  # Redis monitoring
+  - job_name: "redis"
+    metrics_path: "/metrics"
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+    metrics_labels:
+      service: "redis"
+      environment: "${ENV:production}"
+      component_type: "cache"
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+      scheme: "http"
+      timeout: "10s"
+      api_version: "v2"
+
+# Storage configuration
+storage:
+  tsdb:
+    retention_time: "15d"    # Data retention period
+    retention_size: "50GB"   # Maximum storage size
+    wal_compression: true    # Enable WAL compression
+
+# Web UI and API configuration
+web:
+  listen_address: "0.0.0.0:9090"
+  external_url: "${PROMETHEUS_URL}"
+  max_connections: 512
+  read_timeout: "30s"
+  max_samples_per_query: 50000000
+  cors_origin: ".*"
+
+# Additional scrape configurations can be added here as the system grows
