@@ -1,0 +1,191 @@
+# Production Namespace for SaaS Benchmarks Platform
+# Version: 1.0
+# This namespace provides isolation and resource management for the production environment
+# with comprehensive security controls and compliance configurations
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: saas-benchmarks-prod
+  labels:
+    name: saas-benchmarks-prod
+    environment: production
+    app: saas-benchmarks
+    managed-by: terraform
+    criticality: high
+  annotations:
+    # Node scheduling configuration
+    scheduler.alpha.kubernetes.io/node-selector: env=production
+    
+    # Network security policy
+    net.beta.kubernetes.io/network-policy: default-deny
+    
+    # Backup configuration
+    backup.velero.io/backup-volumes: "true"
+    
+    # Monitoring configuration
+    monitoring.prometheus.io/scrape: "true"
+    
+    # Compliance configurations
+    compliance.security.io/pci-dss: enabled
+    compliance.security.io/gdpr: enabled
+
+---
+# Resource Quota for production namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: saas-benchmarks-prod-quota
+  namespace: saas-benchmarks-prod
+spec:
+  hard:
+    # Compute resources
+    cpu: "8"
+    memory: 16Gi
+    pods: "20"
+    
+    # API resources
+    services: "10"
+    configmaps: "20"
+    secrets: "20"
+    
+    # Storage resources
+    persistentvolumeclaims: "10"
+    requests.storage: 100Gi
+    
+    # Network resources
+    services.loadbalancers: "2"
+    services.nodeports: "5"
+    
+    # Additional resources
+    count/ingresses.networking.k8s.io: "5"
+
+---
+# LimitRange for production namespace
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: saas-benchmarks-prod-limits
+  namespace: saas-benchmarks-prod
+spec:
+  limits:
+  - type: Container
+    default:
+      cpu: 500m
+      memory: 512Mi
+    defaultRequest:
+      cpu: 100m
+      memory: 256Mi
+    max:
+      cpu: "2"
+      memory: 4Gi
+    min:
+      cpu: 50m
+      memory: 128Mi
+  - type: PersistentVolumeClaim
+    max:
+      storage: 20Gi
+    min:
+      storage: 500Mi
+    default:
+      storage: 5Gi
+
+---
+# Default Network Policy (deny all)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: saas-benchmarks-prod
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+
+---
+# Allow ingress from ingress-controller
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-controller
+  namespace: saas-benchmarks-prod
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+
+---
+# Allow ingress from monitoring
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-monitoring
+  namespace: saas-benchmarks-prod
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9090
+    - protocol: TCP
+      port: 9091
+    - protocol: TCP
+      port: 9092
+
+---
+# Allow DNS egress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: saas-benchmarks-prod
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+
+---
+# Allow egress to RDS and Redis
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-database-access
+  namespace: saas-benchmarks-prod
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/16
+    ports:
+    - protocol: TCP
+      port: 5432  # PostgreSQL
+    - protocol: TCP
+      port: 6379  # Redis
