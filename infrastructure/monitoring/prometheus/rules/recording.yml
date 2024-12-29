@@ -1,0 +1,60 @@
+# Prometheus Recording Rules Configuration v2.45.x
+# Purpose: Define pre-computed metrics and aggregations for SaaS Benchmarks Platform monitoring
+
+groups:
+  # API Performance and Usage Metrics
+  - name: api_metrics
+    rules:
+      # Average request duration over 5m window
+      - record: http_request_duration_seconds
+        expr: rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m])
+        labels:
+          service: api
+
+      # Error rate calculation over 5m window
+      - record: http_error_rate
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))
+        labels:
+          service: api
+
+      # Concurrent user estimation based on request rate
+      - record: concurrent_users
+        expr: sum(rate(http_requests_total[1m])) * 60
+        labels:
+          service: api
+
+  # System Availability and Resource Metrics
+  - name: system_metrics
+    rules:
+      # System uptime ratio over 24h window
+      - record: uptime_ratio
+        expr: avg_over_time(up[24h])
+        labels:
+          component: availability
+
+      # Memory usage percentage
+      - record: memory_usage_percent
+        expr: 100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+        labels:
+          component: resources
+
+      # CPU usage percentage across all cores
+      - record: cpu_usage_percent
+        expr: 100 * (1 - rate(node_cpu_seconds_total{mode="idle"}[5m]))
+        labels:
+          component: resources
+
+  # Database Performance Metrics
+  - name: database_metrics
+    rules:
+      # PostgreSQL average query duration over 5m window
+      - record: postgres_query_duration_seconds
+        expr: rate(postgres_query_duration_seconds_sum[5m]) / rate(postgres_query_duration_seconds_count[5m])
+        labels:
+          service: postgres
+
+      # Redis memory usage percentage
+      - record: redis_memory_usage_percent
+        expr: 100 * redis_memory_used_bytes / redis_memory_max_bytes
+        labels:
+          service: redis
