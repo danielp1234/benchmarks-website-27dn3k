@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SaaS Benchmarks Platform - Comprehensive benchmark data across 14 key performance indicators for SaaS companies">
+    <meta name="theme-color" content="#ffffff">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- Open Graph tags -->
+    <meta property="og:title" content="SaaS Benchmarks Platform">
+    <meta property="og:description" content="Access comprehensive SaaS benchmark data across 14 key performance indicators">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter Card tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SaaS Benchmarks Platform">
+    <meta name="twitter:description" content="Access comprehensive SaaS benchmark data across 14 key performance indicators">
+
+    <!-- Security headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.benchmarks.saas; report-uri /csp-report; report-to default">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()">
+
+    <title>SaaS Benchmarks Platform</title>
+
+    <!-- Preconnect to required domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+    <link rel="dns-prefetch" href="https://api.benchmarks.saas">
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/src/main.tsx" as="script" type="module" importance="high" fetchpriority="high">
+    <link rel="modulepreload" href="/src/main.tsx">
+    <link rel="preload" href="/src/assets/styles/global.css" as="style">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/src/assets/images/favicon.ico">
+
+    <!-- Primary font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Global styles -->
+    <link rel="stylesheet" href="/src/assets/styles/global.css">
+
+    <!-- Cache control -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<body>
+    <!-- Skip links for accessibility -->
+    <a href="#main-content" class="skip-link visually-hidden">Skip to main content</a>
+    <a href="#nav" class="skip-link visually-hidden">Skip to navigation</a>
+
+    <!-- Root element for React application -->
+    <div id="root" role="application"></div>
+
+    <!-- Fallback for no JavaScript -->
+    <noscript>
+        <div class="noscript-message" role="alert">
+            <h1>JavaScript Required</h1>
+            <p>You need to enable JavaScript to run this application.</p>
+        </div>
+    </noscript>
+
+    <!-- Error boundary for uncaught errors -->
+    <script>
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            console.error('Error: ', msg, '\nURL: ', url, '\nLine: ', lineNo, '\nColumn: ', columnNo, '\nError object: ', error);
+            return false;
+        };
+    </script>
+
+    <!-- Performance monitoring -->
+    <script type="module">
+        if ('performance' in window && 'PerformanceObserver' in window) {
+            const observer = new PerformanceObserver((list) => {
+                for (const entry of list.getEntries()) {
+                    console.log(`${entry.name}: ${entry.startTime}ms`);
+                }
+            });
+            observer.observe({ entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift'] });
+        }
+    </script>
+
+    <!-- Main application entry point -->
+    <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
