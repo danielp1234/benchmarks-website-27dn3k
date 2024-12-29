@@ -1,0 +1,195 @@
+# API Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saas-benchmarks-api
+  namespace: staging
+  labels:
+    app: saas-benchmarks
+    component: api
+    environment: staging
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics"
+    prometheus.io/port: "9090"
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  selector:
+    matchLabels:
+      app: saas-benchmarks
+      component: api
+  template:
+    metadata:
+      labels:
+        app: saas-benchmarks
+        component: api
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+      containers:
+      - name: api
+        image: saas-benchmarks/api:staging
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        - containerPort: 9090
+          name: metrics
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        envFrom:
+        - configMapRef:
+            name: saas-benchmarks-config
+        - secretRef:
+            name: database-credentials
+        - secretRef:
+            name: redis-credentials
+        - secretRef:
+            name: google-oauth-credentials
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+---
+# Web Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saas-benchmarks-web
+  namespace: staging
+  labels:
+    app: saas-benchmarks
+    component: web
+    environment: staging
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  selector:
+    matchLabels:
+      app: saas-benchmarks
+      component: web
+  template:
+    metadata:
+      labels:
+        app: saas-benchmarks
+        component: web
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+      containers:
+      - name: web
+        image: saas-benchmarks/web:staging
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 200m
+            memory: 512Mi
+        envFrom:
+        - configMapRef:
+            name: saas-benchmarks-config
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+---
+# Redis Cache Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saas-benchmarks-redis
+  namespace: staging
+  labels:
+    app: saas-benchmarks
+    component: redis
+    environment: staging
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: saas-benchmarks
+      component: redis
+  template:
+    metadata:
+      labels:
+        app: saas-benchmarks
+        component: redis
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+      containers:
+      - name: redis
+        image: redis:7.0-alpine
+        ports:
+        - containerPort: 6379
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 200m
+            memory: 512Mi
+        livenessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
