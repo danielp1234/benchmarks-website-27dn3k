@@ -1,0 +1,129 @@
+/**
+ * Theme Definitions for SaaS Benchmarks Platform
+ * Version: 1.0.0
+ * 
+ * Implements Material Design based light and dark themes with WCAG 2.1 Level AA compliance.
+ * Supports system preferences, manual theme switching, and enhanced visual hierarchy.
+ */
+
+@import './variables.css';
+
+/* Root theme configuration and shared properties */
+:root {
+  /* Theme transition configuration */
+  --transition-duration: 200ms;
+  --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Focus state configuration */
+  --focus-ring-color: rgba(59, 130, 246, 0.5);
+  --focus-ring-width: 3px;
+
+  /* Light theme (default) */
+  --background-primary: #FFFFFF;
+  --background-secondary: #F3F4F6;
+  --background-tertiary: #E5E7EB;
+  
+  /* Surface elevations with Material Design shadows */
+  --surface-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --surface-elevation-2: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --surface-elevation-3: 0 10px 15px rgba(0, 0, 0, 0.1);
+  
+  /* Typography colors with WCAG AA contrast */
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-tertiary: #6B7280;
+  --text-disabled: #9CA3AF;
+  
+  /* Interactive states */
+  --border-color: #E5E7EB;
+  --border-focus: var(--primary-color);
+  --state-hover: rgba(0, 0, 0, 0.04);
+  --state-active: rgba(0, 0, 0, 0.08);
+  --state-selected: rgba(59, 130, 246, 0.08);
+  --state-disabled: rgba(0, 0, 0, 0.12);
+  
+  /* Shadow configuration */
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Dark theme configuration */
+[data-theme='dark'] {
+  --background-primary: #111827;
+  --background-secondary: #1F2937;
+  --background-tertiary: #374151;
+  
+  /* Adjusted surface elevations for dark theme */
+  --surface-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --surface-elevation-2: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --surface-elevation-3: 0 10px 15px rgba(0, 0, 0, 0.3);
+  
+  /* Typography colors with WCAG AA contrast for dark theme */
+  --text-primary: #F9FAFB;
+  --text-secondary: #E5E7EB;
+  --text-tertiary: #9CA3AF;
+  --text-disabled: #6B7280;
+  
+  /* Interactive states for dark theme */
+  --border-color: #374151;
+  --border-focus: #60A5FA;
+  --state-hover: rgba(255, 255, 255, 0.04);
+  --state-active: rgba(255, 255, 255, 0.08);
+  --state-selected: rgba(96, 165, 250, 0.08);
+  --state-disabled: rgba(255, 255, 255, 0.12);
+  
+  /* Shadow configuration for dark theme */
+  --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Theme transition class for smooth theme switching */
+.theme-transition {
+  transition: 
+    background-color var(--transition-duration) var(--transition-timing),
+    color var(--transition-duration) var(--transition-timing),
+    border-color var(--transition-duration) var(--transition-timing),
+    box-shadow var(--transition-duration) var(--transition-timing);
+  contain: layout style;
+  will-change: background-color, color, border-color, box-shadow;
+}
+
+/* High contrast mode overrides */
+.high-contrast {
+  --text-primary: #000000;
+  --text-secondary: #000000;
+  --border-color: #000000;
+  --focus-ring-color: #000000;
+  --focus-ring-width: 4px;
+}
+
+/* System preference based theme selection */
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
+/* Accessibility - Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-duration: 0ms;
+  }
+}
+
+/* Print styles optimization */
+@media print {
+  :root {
+    --background-primary: #FFFFFF;
+    --text-primary: #000000;
+    --border-color: #000000;
+    --shadow-color: transparent;
+    --surface-elevation-1: none;
+    --surface-elevation-2: none;
+    --surface-elevation-3: none;
+  }
+}
