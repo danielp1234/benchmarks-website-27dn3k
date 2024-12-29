@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: saas-benchmarks-web
+    ports:
+      - "5173:5173"
+    volumes:
+      # Mount source code for hot reloading
+      - .:/app
+      # Use named volume for node_modules to prevent overwriting
+      - node_modules:/app/node_modules
+    environment:
+      # API Configuration
+      - VITE_API_BASE_URL=http://localhost:3000
+      - VITE_API_TIMEOUT=30000
+      # Authentication Configuration
+      - VITE_SESSION_TIMEOUT=1800
+      # Application Configuration
+      - VITE_APP_ENV=development
+      # Node environment
+      - NODE_ENV=development
+    command: npm run dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - saas-benchmarks-network
+    restart: unless-stopped
+    # Set reasonable resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+volumes:
+  node_modules:
+    name: saas-benchmarks-web-node_modules
+
+networks:
+  saas-benchmarks-network:
+    name: saas-benchmarks-network
+    driver: bridge
