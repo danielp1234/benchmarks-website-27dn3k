@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: saas-benchmarks-prod
+  labels:
+    app: saas-benchmarks
+    component: backend
+    environment: production
+data:
+  # Node.js Environment
+  NODE_ENV: "production"
+  PORT: "3000"
+
+  # API Configuration
+  API_URL: "https://api.saas-benchmarks.com"
+  CORS_ORIGIN: "https://saas-benchmarks.com"
+
+  # Rate Limiting
+  RATE_LIMIT_WINDOW: "3600000"
+  RATE_LIMIT_PUBLIC: "1000"
+  RATE_LIMIT_AUTH: "5000"
+
+  # Database Configuration
+  DB_HOST: "rds.saas-benchmarks.com"
+  DB_PORT: "5432"
+  DB_NAME: "saas_benchmarks"
+  DB_SSL: "true"
+
+  # Redis Configuration
+  REDIS_HOST: "redis.saas-benchmarks.com"
+  REDIS_PORT: "6379"
+  REDIS_TTL: "300"
+  REDIS_CLUSTER_MODE: "true"
+
+  # OAuth Configuration
+  GOOGLE_OAUTH_CALLBACK_URL: "https://api.saas-benchmarks.com/api/v1/auth/google/callback"
+
+  # Security Headers
+  STRICT_TRANSPORT_SECURITY: "max-age=31536000; includeSubDomains"
+  CONTENT_SECURITY_POLICY: "default-src 'self'; script-src 'self' *.googleapis.com"
+  X_FRAME_OPTIONS: "DENY"
+  X_CONTENT_TYPE_OPTIONS: "nosniff"
+  X_XSS_PROTECTION: "1; mode=block"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: saas-benchmarks-prod
+  labels:
+    app: saas-benchmarks
+    component: frontend
+    environment: production
+data:
+  # Node.js Environment
+  NODE_ENV: "production"
+
+  # API Configuration
+  VITE_API_URL: "https://api.saas-benchmarks.com"
+
+  # OAuth Configuration
+  VITE_GOOGLE_OAUTH_CLIENT_ID: "${GOOGLE_OAUTH_CLIENT_ID}"
+
+  # Application Metadata
+  VITE_APP_TITLE: "SaaS Benchmarks Platform"
+  VITE_APP_DESCRIPTION: "Comprehensive benchmark data across 14 key performance indicators for SaaS companies"
