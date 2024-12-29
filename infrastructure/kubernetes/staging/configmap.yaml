@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: saas-benchmarks-config
+  namespace: staging
+  labels:
+    app: saas-benchmarks
+    environment: staging
+    managed-by: terraform
+    version: 1.0.0
+data:
+  # Server Configuration
+  NODE_ENV: "staging"
+  PORT: "3000"
+  API_URL: "https://api-staging.saas-benchmarks.com"
+  CORS_ORIGIN: "https://staging.saas-benchmarks.com"
+  RATE_LIMIT_WINDOW: "3600000"
+  RATE_LIMIT_PUBLIC: "1000"
+  RATE_LIMIT_AUTH: "5000"
+  LOG_LEVEL: "debug"
+  REQUEST_TIMEOUT: "30000"
+
+  # Database Configuration
+  DB_HOST: "saas-benchmarks-db.staging.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_NAME: "saas_benchmarks"
+  DB_SSL: "true"
+  DB_POOL_MIN: "2"
+  DB_POOL_MAX: "10"
+  DB_IDLE_TIMEOUT: "10000"
+  DB_CONNECTION_TIMEOUT: "5000"
+
+  # Redis Configuration
+  REDIS_HOST: "saas-benchmarks-redis.staging.svc.cluster.local"
+  REDIS_PORT: "6379"
+  REDIS_TTL: "300"
+  REDIS_CLUSTER_MODE: "true"
+  REDIS_KEY_PREFIX: "staging:"
+  REDIS_MAX_RETRIES: "3"
+  REDIS_RETRY_INTERVAL: "1000"
+  REDIS_KEEP_ALIVE: "true"
+
+  # Security Headers Configuration
+  STRICT_TRANSPORT_SECURITY: "max-age=31536000; includeSubDomains"
+  CONTENT_SECURITY_POLICY: "default-src 'self'; script-src 'self' *.googleapis.com; style-src 'self' 'unsafe-inline' *.googleapis.com; img-src 'self' data: https:; font-src 'self' https: data:; connect-src 'self' https://api-staging.saas-benchmarks.com"
+  X_FRAME_OPTIONS: "DENY"
+  X_CONTENT_TYPE_OPTIONS: "nosniff"
+  X_XSS_PROTECTION: "1; mode=block"
+  REFERRER_POLICY: "strict-origin-when-cross-origin"
+  PERMISSIONS_POLICY: "camera=(), microphone=(), geolocation=()"
+  EXPECT_CT: "enforce, max-age=30"
