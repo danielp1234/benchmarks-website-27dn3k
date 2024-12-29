@@ -1,0 +1,42 @@
+File Format: ICO (Windows Icon)
+File Size Target: < 10KB
+Color Depth: 32-bit RGBA (supports transparency)
+
+Required Resolutions (included in single ICO file):
+- 16x16 pixels (1x and 2x for high DPI)
+- 32x32 pixels (1x and 2x for high DPI)
+- 48x48 pixels (1x and 2x for high DPI)
+
+Design Guidelines:
+1. Create a simple, recognizable icon representing SaaS/benchmarking
+2. Use clean geometric shapes that remain legible at small sizes
+3. Incorporate transparency for modern browser display
+4. Ensure high contrast for visibility in browser UI
+5. Optimize for both light and dark browser themes
+
+Suggested Icon Design:
+- Primary shape: Stylized bar chart or growth arrow
+- Color scheme: Match brand colors from design system
+- Background: Transparent to adapt to browser themes
+- Edges: Pixel-aligned for crisp display
+
+Technical Requirements:
+1. Save with lossless compression
+2. Include alpha channel for transparency
+3. Optimize file size while maintaining quality
+4. Test across all supported browsers
+5. Verify high-DPI display rendering
+
+Usage Implementation:
+1. Reference in HTML head:
+   <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
+2. Configure server caching:
+   Cache-Control: public, max-age=31536000
+
+Browser Support:
+- Chrome (latest 2 versions)
+- Firefox (latest 2 versions)
+- Safari (latest 2 versions)
+- Edge (latest 2 versions)
+
+Note: Since this is a binary file, actual image data cannot be represented in text format. Use professional image editing software to create the ICO file according to these specifications.
