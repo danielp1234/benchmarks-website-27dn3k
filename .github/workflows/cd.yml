@@ -1,0 +1,210 @@
+name: CD
+
+# Trigger on successful CI workflow completion or manual dispatch
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options:
+          - staging
+          - production
+        required: true
+        description: "Target deployment environment"
+      force_deploy:
+        type: boolean
+        default: false
+        description: "Force deployment without waiting for health checks"
+
+# Environment configuration
+env:
+  AWS_REGION: us-west-2
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+  ECS_CLUSTER: ${{ github.event.inputs.environment == 'production' && 'saas-benchmarks-production' || 'saas-benchmarks-staging' }}
+  NODE_VERSION: "18.x"
+
+# Prevent concurrent deployments
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: staging
+    if: github.event.workflow_run.conclusion == 'success' || github.event.inputs.environment == 'staging'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push staging images
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            --cache-from type=registry,ref=${{ env.ECR_REGISTRY }}/backend:cache \
+            --cache-to type=registry,ref=${{ env.ECR_REGISTRY }}/backend:cache,mode=max \
+            --tag ${{ env.ECR_REGISTRY }}/backend:${GITHUB_SHA} \
+            --tag ${{ env.ECR_REGISTRY }}/backend:staging \
+            --push \
+            -f backend/Dockerfile ./backend
+
+          docker buildx build \
+            --platform linux/amd64 \
+            --cache-from type=registry,ref=${{ env.ECR_REGISTRY }}/frontend:cache \
+            --cache-to type=registry,ref=${{ env.ECR_REGISTRY }}/frontend:cache,mode=max \
+            --tag ${{ env.ECR_REGISTRY }}/frontend:${GITHUB_SHA} \
+            --tag ${{ env.ECR_REGISTRY }}/frontend:staging \
+            --push \
+            -f frontend/Dockerfile ./frontend
+
+      - name: Deploy to staging ECS
+        run: |
+          chmod +x ./infrastructure/scripts/deploy.sh
+          ./infrastructure/scripts/deploy.sh \
+            --cluster saas-benchmarks-staging \
+            --service saas-benchmarks-staging-service \
+            --image-tag ${GITHUB_SHA} \
+            --environment staging
+
+      - name: Health check
+        run: |
+          attempts=0
+          max_attempts=20
+          until curl -s -f https://staging-api.saasbenchmarks.com/health || [ $attempts -eq $max_attempts ]
+          do
+            attempts=$((attempts + 1))
+            sleep 15
+          done
+          if [ $attempts -eq $max_attempts ]; then
+            echo "Health check failed after $max_attempts attempts"
+            exit 1
+          fi
+
+      - name: Verify metrics
+        run: |
+          # Verify key performance metrics
+          ./infrastructure/scripts/verify-metrics.sh \
+            --environment staging \
+            --error-rate-threshold 1 \
+            --latency-threshold 500 \
+            --cpu-threshold 85 \
+            --memory-threshold 85
+
+      - name: Notify team
+        if: always()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{
+              "text": "Staging Deployment ${{ job.status }}: ${{ github.repository }}@${GITHUB_SHA}"
+            }' \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  deploy-production:
+    name: Deploy to Production
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production
+    if: github.event.inputs.environment == 'production'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Promote staging images to production
+        run: |
+          docker pull ${{ env.ECR_REGISTRY }}/backend:${GITHUB_SHA}
+          docker pull ${{ env.ECR_REGISTRY }}/frontend:${GITHUB_SHA}
+          
+          docker tag ${{ env.ECR_REGISTRY }}/backend:${GITHUB_SHA} ${{ env.ECR_REGISTRY }}/backend:production
+          docker tag ${{ env.ECR_REGISTRY }}/frontend:${GITHUB_SHA} ${{ env.ECR_REGISTRY }}/frontend:production
+          
+          docker push ${{ env.ECR_REGISTRY }}/backend:production
+          docker push ${{ env.ECR_REGISTRY }}/frontend:production
+
+      - name: Deploy to production ECS
+        run: |
+          chmod +x ./infrastructure/scripts/deploy.sh
+          ./infrastructure/scripts/deploy.sh \
+            --cluster saas-benchmarks-production \
+            --service saas-benchmarks-production-service \
+            --image-tag production \
+            --environment production \
+            --enable-rollback true
+
+      - name: Health check
+        run: |
+          attempts=0
+          max_attempts=30
+          until curl -s -f https://api.saasbenchmarks.com/health || [ $attempts -eq $max_attempts ]
+          do
+            attempts=$((attempts + 1))
+            sleep 20
+          done
+          if [ $attempts -eq $max_attempts ]; then
+            echo "Health check failed after $max_attempts attempts"
+            ./infrastructure/scripts/rollback.sh --environment production
+            exit 1
+          fi
+
+      - name: Load testing
+        run: |
+          ./infrastructure/scripts/load-test.sh \
+            --environment production \
+            --duration 5m \
+            --users 1000 \
+            --threshold-rps 500
+
+      - name: Verify metrics
+        run: |
+          ./infrastructure/scripts/verify-metrics.sh \
+            --environment production \
+            --error-rate-threshold 0.5 \
+            --latency-threshold 300 \
+            --cpu-threshold 80 \
+            --memory-threshold 80
+
+      - name: Notify team
+        if: always()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{
+              "text": "Production Deployment ${{ job.status }}: ${{ github.repository }}@${GITHUB_SHA}\nDetails: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }' \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
