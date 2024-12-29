@@ -1,0 +1,57 @@
+# Prometheus Alert Rules Configuration v2.45.x
+# Defines monitoring alerts and thresholds for the SaaS Benchmarks Platform
+
+groups:
+  # API Performance and Reliability Alerts
+  - name: api_alerts
+    rules:
+      # Alert when API response time exceeds 2 second target
+      - alert: HighResponseTime
+        expr: http_request_duration_seconds > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+          component: performance
+        annotations:
+          summary: High response time detected
+          description: API response time exceeds 2 second target for {{ $value }} seconds
+          
+      # Alert when API error rate exceeds 5%
+      - alert: HighErrorRate
+        expr: http_error_rate > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          service: api
+          component: reliability
+        annotations:
+          summary: High error rate detected
+          description: API error rate is {{ $value }}% over the last 5 minutes
+
+  # System Availability and Capacity Alerts
+  - name: system_alerts
+    rules:
+      # Alert when system availability drops below 99.9% SLA target
+      - alert: LowUptime
+        expr: uptime_ratio < 0.999
+        for: 15m
+        labels:
+          severity: critical
+          component: availability
+          sla: impacted
+        annotations:
+          summary: System availability below target
+          description: System uptime is {{ $value }}%, below 99.9% target
+          
+      # Alert when approaching concurrent user capacity limit
+      - alert: HighConcurrentUsers
+        expr: concurrent_users > 900
+        for: 5m
+        labels:
+          severity: warning
+          component: usage
+          scaling: required
+        annotations:
+          summary: High concurrent user load
+          description: System approaching 1000 user capacity limit with {{ $value }} concurrent users
