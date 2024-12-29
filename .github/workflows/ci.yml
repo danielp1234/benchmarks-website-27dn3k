@@ -1,0 +1,220 @@
+# CI workflow for SaaS Benchmarks Platform
+# Version: 1.0.0
+# Handles building, testing, and validating backend and frontend components
+
+name: CI
+
+# Trigger on push to main branches and PRs
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/*'
+      - 'bugfix/*'
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+  pull_request:
+    branches:
+      - main
+      - develop
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+# Concurrency control to cancel in-progress runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Environment variables
+env:
+  NODE_ENV: test
+  CI: true
+  FORCE_COLOR: true
+
+jobs:
+  backend-ci:
+    name: Backend CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: src/backend/package-lock.json
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: src/backend/node_modules
+          key: backend-deps-${{ hashFiles('src/backend/package-lock.json') }}
+          restore-keys: |
+            backend-deps-
+
+      - name: Install dependencies
+        working-directory: src/backend
+        run: |
+          npm ci
+          npm audit
+
+      - name: Lint code
+        working-directory: src/backend
+        run: npm run lint
+        continue-on-error: false
+
+      - name: Type check
+        working-directory: src/backend
+        run: npm run type-check
+        continue-on-error: false
+
+      - name: Run unit tests
+        working-directory: src/backend
+        run: |
+          npm run test:unit -- --coverage --ci --maxWorkers=2
+        env:
+          JEST_JUNIT_OUTPUT_DIR: ./coverage/junit
+
+      - name: Run integration tests
+        working-directory: src/backend
+        run: |
+          npm run test:integration -- --runInBand --ci
+        env:
+          JEST_JUNIT_OUTPUT_DIR: ./coverage/junit
+        timeout-minutes: 10
+        if: success() || failure()
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/analyze@v2
+        with:
+          languages: javascript
+          queries: security-extended
+
+      - name: Build application
+        working-directory: src/backend
+        run: npm run build
+        if: success()
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend-dist
+          path: src/backend/dist
+          retention-days: 5
+          if-no-files-found: error
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          directory: src/backend/coverage
+          flags: backend
+          fail_ci_if_error: true
+
+  frontend-ci:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: src/web/package-lock.json
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: src/web/node_modules
+          key: frontend-deps-${{ hashFiles('src/web/package-lock.json') }}
+          restore-keys: |
+            frontend-deps-
+
+      - name: Install dependencies
+        working-directory: src/web
+        run: |
+          npm ci
+          npm audit
+
+      - name: Lint code
+        working-directory: src/web
+        run: npm run lint
+        continue-on-error: false
+
+      - name: Type check
+        working-directory: src/web
+        run: npm run type-check
+        continue-on-error: false
+
+      - name: Run unit tests
+        working-directory: src/web
+        run: |
+          npm run test:unit -- --coverage --ci --maxWorkers=2
+        env:
+          JEST_JUNIT_OUTPUT_DIR: ./coverage/junit
+
+      - name: Run E2E tests
+        working-directory: src/web
+        run: |
+          npm run test:e2e -- --headless
+        timeout-minutes: 15
+        if: success() || failure()
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/analyze@v2
+        with:
+          languages: javascript
+          queries: security-extended
+
+      - name: Build application
+        working-directory: src/web
+        run: npm run build
+        if: success()
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-dist
+          path: src/web/dist
+          retention-days: 5
+          if-no-files-found: error
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          directory: src/web/coverage
+          flags: frontend
+          fail_ci_if_error: true
+
+  notify:
+    name: Send Notifications
+    needs: [backend-ci, frontend-ci]
+    runs-on: ubuntu-latest
+    if: failure()
+
+    steps:
+      - name: Notify team
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          mention: here
+          if_mention: failure
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
