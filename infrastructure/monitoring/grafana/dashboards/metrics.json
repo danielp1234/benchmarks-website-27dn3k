@@ -1,0 +1,342 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "SaaS Benchmarks Platform monitoring dashboard showing API performance, system resources, and business KPIs",
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "iteration": 1,
+  "links": [],
+  "panels": [
+    {
+      "title": "API Response Time",
+      "type": "graph",
+      "datasource": "Prometheus",
+      "id": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "http_request_duration_seconds",
+          "legendFormat": "{{endpoint}}",
+          "interval": "",
+          "exemplar": true
+        }
+      ],
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "gt",
+          "value": 2,
+          "yaxis": "left"
+        }
+      ],
+      "alert": {
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [2],
+              "type": "gt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": ["A", "5m", "now"]
+            },
+            "reducer": {
+              "params": [],
+              "type": "avg"
+            },
+            "type": "query"
+          }
+        ],
+        "name": "Response Time Alert",
+        "noDataState": "no_data",
+        "notifications": []
+      }
+    },
+    {
+      "title": "Request Rate by Endpoint",
+      "type": "graph",
+      "datasource": "Prometheus",
+      "id": 2,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total[5m])) by (endpoint)",
+          "legendFormat": "{{endpoint}}",
+          "interval": "",
+          "exemplar": true
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "short",
+          "label": "Requests/sec"
+        },
+        {
+          "format": "short",
+          "show": false
+        }
+      ]
+    },
+    {
+      "title": "Error Rate",
+      "type": "gauge",
+      "datasource": "Prometheus",
+      "id": 3,
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 8
+      },
+      "targets": [
+        {
+          "expr": "http_error_rate * 100",
+          "legendFormat": "Error %",
+          "interval": "",
+          "exemplar": true
+        }
+      ],
+      "thresholds": {
+        "steps": [
+          { "value": null, "color": "green" },
+          { "value": 5, "color": "yellow" },
+          { "value": 10, "color": "red" }
+        ]
+      },
+      "format": "percent",
+      "min": 0,
+      "max": 100
+    },
+    {
+      "title": "Concurrent Users",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "id": 4,
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 8
+      },
+      "targets": [
+        {
+          "expr": "concurrent_users",
+          "legendFormat": "Users",
+          "interval": "",
+          "exemplar": true
+        }
+      ],
+      "thresholds": {
+        "steps": [
+          { "value": null, "color": "green" },
+          { "value": 800, "color": "yellow" },
+          { "value": 1000, "color": "red" }
+        ]
+      },
+      "format": "none"
+    },
+    {
+      "title": "System Resources",
+      "type": "row",
+      "id": 5,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "collapsed": false
+    },
+    {
+      "title": "CPU Usage",
+      "type": "graph",
+      "datasource": "Prometheus",
+      "id": 6,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 17
+      },
+      "targets": [
+        {
+          "expr": "cpu_usage_percent",
+          "legendFormat": "CPU %",
+          "interval": "",
+          "exemplar": true
+        }
+      ],
+      "thresholds": [
+        {
+          "colorMode": "warning",
+          "fill": true,
+          "line": true,
+          "op": "gt",
+          "value": 80,
+          "yaxis": "left"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "percent",
+          "label": "CPU Usage",
+          "max": 100,
+          "min": 0
+        },
+        {
+          "format": "short",
+          "show": false
+        }
+      ]
+    },
+    {
+      "title": "Memory Usage",
+      "type": "graph",
+      "datasource": "Prometheus",
+      "id": 7,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 17
+      },
+      "targets": [
+        {
+          "expr": "memory_usage_bytes / 1024 / 1024",
+          "legendFormat": "Memory MB",
+          "interval": "",
+          "exemplar": true
+        }
+      ],
+      "thresholds": [
+        {
+          "colorMode": "warning",
+          "fill": true,
+          "line": true,
+          "op": "gt",
+          "value": 1536,
+          "yaxis": "left"
+        }
+      ],
+      "yaxes": [
+        {
+          "format": "mbytes",
+          "label": "Memory Usage"
+        },
+        {
+          "format": "short",
+          "show": false
+        }
+      ]
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 30,
+  "style": "dark",
+  "tags": ["saas", "benchmarks", "monitoring"],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(http_requests_total, endpoint)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Endpoint",
+        "multi": false,
+        "name": "endpoint",
+        "options": [],
+        "query": {
+          "query": "label_values(http_requests_total, endpoint)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(service)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Service",
+        "multi": false,
+        "name": "service",
+        "options": [],
+        "query": {
+          "query": "label_values(service)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ]
+  },
+  "timezone": "browser",
+  "title": "SaaS Benchmarks Platform Metrics",
+  "uid": "saas-benchmarks-metrics",
+  "version": 1
+}
