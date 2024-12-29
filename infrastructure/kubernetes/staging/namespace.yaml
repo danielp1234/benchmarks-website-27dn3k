@@ -1,0 +1,133 @@
+# Kubernetes Namespace definition for SaaS Benchmarks Platform staging environment
+# Version: v1
+# Purpose: Provides isolation and resource management for staging deployment
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: saas-benchmarks-staging
+  labels:
+    name: saas-benchmarks-staging
+    environment: staging
+    app: saas-benchmarks
+    managed-by: terraform
+    version: v1
+    tier: staging
+  annotations:
+    # Node selector to ensure pods are scheduled on staging nodes
+    scheduler.alpha.kubernetes.io/node-selector: env=staging
+    # Default deny all network traffic unless explicitly allowed
+    net.beta.kubernetes.io/network-policy: default-deny
+    # Enforce restricted pod security policy
+    security.alpha.kubernetes.io/pod-security-policy: restricted
+    # Enable Prometheus metrics scraping
+    monitoring.alpha.kubernetes.io/scrape: "true"
+    # Enable automated backups
+    backup.alpha.kubernetes.io/enabled: "true"
+    # Additional metadata
+    description: "Staging environment for SaaS Benchmarks Platform"
+    owner: "platform-team"
+    compliance.security/level: "high"
+
+---
+# Resource Quota definition to limit resource consumption
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: saas-benchmarks-staging-quota
+  namespace: saas-benchmarks-staging
+spec:
+  hard:
+    # Compute resources
+    requests.cpu: "4"
+    requests.memory: "8Gi"
+    limits.cpu: "4"
+    limits.memory: "8Gi"
+    # Object count limits
+    pods: "10"
+    services: "5"
+    configmaps: "10"
+    secrets: "10"
+    persistentvolumeclaims: "5"
+    # Storage resources
+    requests.storage: "20Gi"
+    # Service type limits
+    services.loadbalancers: "2"
+    services.nodeports: "3"
+
+---
+# LimitRange definition to set default resource constraints
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: saas-benchmarks-staging-limits
+  namespace: saas-benchmarks-staging
+spec:
+  limits:
+  - type: Container
+    default:
+      cpu: "500m"
+      memory: "512Mi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "256Mi"
+    max:
+      cpu: "1"
+      memory: "2Gi"
+    min:
+      cpu: "50m"
+      memory: "128Mi"
+
+---
+# Network Policy for default deny-all
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: saas-benchmarks-staging
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+
+---
+# Network Policy to allow essential communication
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-essential-traffic
+  namespace: saas-benchmarks-staging
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    - podSelector: {}  # Allow traffic within namespace
+  egress:
+  - to:  # Allow DNS resolution
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+  - to:  # Allow AWS service access
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 169.254.169.254/32  # Block metadata API
+    ports:
+    - protocol: TCP
+      port: 443
