@@ -64,7 +64,7 @@
     "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
-    "@golevelup/ts-jest": "^0.4.0",
+    "@golevelup/ts-jest": "^0.6.1",
     "@jest/globals": "^29.6.2",
     "@jest/types": "^29.6.1",
     "@nestjs/testing": "^10.0.0",
