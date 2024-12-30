@@ -48,7 +48,7 @@ For detailed architecture information, see our [technical documentation](docs/ar
 
 ```bash
 # Clone the repository
-git clone https://github.com/[organization]/saas-benchmarks-platform.git
+git clone https://github.com/danielp1234/saas-benchmarks-platform.git
 
 # Navigate to project directory
 cd saas-benchmarks-platform
